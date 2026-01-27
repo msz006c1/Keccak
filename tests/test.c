@@ -8,7 +8,7 @@
  *   - Streaming API tests
  *   - Interactive user testing
  * 
- * @author Keccak Team
+ * @author Andy Wang
  * @date 2026
  */
 

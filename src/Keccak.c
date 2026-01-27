@@ -6,7 +6,7 @@
  * and SHA3-512. It provides both single-call and incremental hashing APIs.
  * Fully compliant with FIPS 202 standard.
  * 
- * @author Keccak Team
+ * @author Andy Wang
  * @date 2026
  */
 

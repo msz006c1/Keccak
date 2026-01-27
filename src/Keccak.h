@@ -8,7 +8,7 @@
  * FIPS 202 Compliant Implementation
  * Platforms: Windows, macOS, Linux, iOS, Android
  * 
- * @author Keccak Team
+ * @author Andy Wang
  * @date 2026
  */
 
