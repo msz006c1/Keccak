@@ -1,0 +1,24 @@
+# Doxygen configuration file for Keccak/SHA3 Library
+
+PROJECT_NAME           = "Keccak/SHA3 Library"
+PROJECT_NUMBER         = 1.0.0
+PROJECT_BRIEF          = "FIPS 202 Compliant Keccak Hash Function Implementation"
+
+INPUT                  = src/ tests/
+OUTPUT_DIRECTORY       = docs/
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+FILE_PATTERNS          = *.h *.c
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+
+WARN_IF_UNDOCUMENTED   = YES
+QUIET                  = NO
