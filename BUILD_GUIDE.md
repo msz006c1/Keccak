@@ -64,44 +64,44 @@ mingw32-make all-platforms
 
 ```powershell
 # 查看帮助
-.\build.ps1 -Help
+.\try_build.ps1 -Help
 
 # 构建
-.\build.ps1
+.\try_build.ps1
 
 # 交叉编译
-.\build.ps1 -Target linux-arm64
+.\try_build.ps1 -Target linux-arm64
 
 # 构建并运行测试
-.\build.ps1 -BuildType Release -Test
+.\try_build.ps1 -BuildType Release -Test
 
 # 构建所有平台
-.\build.ps1 -Target all-platforms
+.\try_build.ps1 -Target all-platforms
 
 # 检查工具链
-.\build.ps1 -CheckToolchains
+.\try_build.ps1 -CheckToolchains
 ```
 
 ### 使用批处理脚本
 
 ```cmd
 # 查看帮助
-build.bat --help
+try_build.bat --help
 
 # 构建
-build.bat
+try_build.bat
 
 # 交叉编译
-build.bat --target linux-arm64
+try_build.bat --target linux-arm64
 
 # 构建并运行测试
-build.bat --test
+try_build.bat --test
 
 # 构建所有平台
-build.bat --all-platforms
+try_build.bat --all-platforms
 
 # 检查工具链
-build.bat --check-toolchains
+try_build.bat --check-toolchains
 ```
 
 ## 📋 支持的构建目标
@@ -189,7 +189,7 @@ build/
 check-toolchains.bat
 
 # PowerShell
-.\build.ps1 -CheckToolchains
+.\try_build.ps1 -CheckToolchains
 
 # Makefile
 make info

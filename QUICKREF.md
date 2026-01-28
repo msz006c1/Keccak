@@ -77,22 +77,22 @@ build.bat --help                       # 显示完整帮助
 
 ```bash
 # 基础命令
-./build.sh                             # 构建
-./build.sh --test                      # 构建并测试
-./build.sh --all-platforms             # 全平台构建
+./try_build.sh                             # 构建
+./try_build.sh --test                      # 构建并测试
+./try_build.sh --all-platforms             # 全平台构建
 
 # 单个目标
-./build.sh --target linux-arm64        # Linux ARM64
-./build.sh --target macos-x86_64       # macOS Intel
+./try_build.sh --target linux-arm64        # Linux ARM64
+./try_build.sh --target macos-x86_64       # macOS Intel
 
 # 选项组合
-./build.sh --debug --test              # 调试并测试
-./build.sh --all-platforms --jobs 8    # 多线程全平台构建
-./build.sh --docs                      # 生成文档
+./try_build.sh --debug --test              # 调试并测试
+./try_build.sh --all-platforms --jobs 8    # 多线程全平台构建
+./try_build.sh --docs                      # 生成文档
 
 # 诊断
-./build.sh --check-toolchains          # 检查工具链
-./build.sh --help                      # 显示完整帮助
+./try_build.sh --check-toolchains          # 检查工具链
+./try_build.sh --help                      # 显示完整帮助
 ```
 
 ## 📦 目标平台代码速查表
@@ -152,7 +152,7 @@ build/
 | `gcc: command not found` | 编译器未安装 | `pacman -S mingw-w64-x86_64-toolchain` |
 | `aarch64-linux-gnu-gcc: not found` | 工具链缺失 | `pacman -S mingw-w64-aarch64-linux-gnu` |
 | `make: command not found` | make 未安装 | `pacman -S mingw-w64-x86_64-make` |
-| `Permission denied` | 脚本无执行权限 | `chmod +x build.sh` (Linux/WSL) |
+| `Permission denied` | 脚本无执行权限 | `chmod +x try_build.sh` (Linux/WSL) |
 | `cannot find -lm` | 数学库缺失 | 检查 `-lm` 链接标志 |
 
 ## 📊 性能优化
@@ -182,8 +182,8 @@ make info TARGET=linux-arm64
 
 # 验证工具链完整性
 ./check-toolchains.bat        # Windows
-./build.ps1 -CheckToolchains  # PowerShell
-./build.sh --check-toolchains # Bash/Linux
+./try_build.ps1 -CheckToolchains  # PowerShell
+./try_build.sh --check-toolchains # Bash/Linux
 ```
 
 ## 📚 详细文档

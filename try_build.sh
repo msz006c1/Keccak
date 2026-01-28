@@ -35,7 +35,7 @@ PARALLEL_JOBS=${PARALLEL_JOBS:-4}
 
 show_help() {
     cat << EOF
-Usage: ./build.sh [options]
+Usage: ./try_build.sh [options]
 
 Build options:
   --debug            Build with debug symbols
@@ -69,11 +69,11 @@ Utilities:
   --help             Show this help message
 
 Examples:
-  ./build.sh                              (default native build)
-  ./build.sh --test                       (build and run tests)
-  ./build.sh --target linux-arm64         (cross-compile for Linux ARM64)
-  ./build.sh --all-platforms              (build all platforms)
-  ./build.sh --check-toolchains           (verify toolchain installation)
+  ./try_build.sh                              (default native build)
+  ./try_build.sh --test                       (build and run tests)
+  ./try_build.sh --target linux-arm64         (cross-compile for Linux ARM64)
+  ./try_build.sh --all-platforms              (build all platforms)
+  ./try_build.sh --check-toolchains           (verify toolchain installation)
 
 EOF
     exit 0
@@ -153,8 +153,8 @@ if [[ "$CHECK_TOOLCHAINS" == true ]]; then
         "x86_64-apple-darwin-clang:macOS Intel"
         "aarch64-apple-darwin-clang:macOS ARM64"
         "arm64-apple-ios-clang:iOS ARM64"
-        "aarch64-linux-android-gcc:Android ARM64"
-        "armv7a-linux-androideabi-gcc:Android ARMv7"
+        "aarch64-linux-android-clang:Android ARM64"
+        "armv7a-linux-android-clang:Android ARMv7"
     )
     
     found_any=0

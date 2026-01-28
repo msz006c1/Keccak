@@ -43,7 +43,7 @@ ifeq ($(TARGET),native)
     else ifeq ($(PLATFORM),LINUX)
         TARGET = linux-x86_64
     else ifeq ($(PLATFORM),MACOS)
-        TARGET = macos-x86_64
+        TARGET = macos-arm64
     endif
 endif
 
@@ -69,11 +69,11 @@ else ifeq ($(TARGET),linux-arm)
     CC ?= $(CROSS_COMPILE)gcc
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),macos-x86_64)
-    CROSS_COMPILE = x86_64-apple-darwin-
+    CROSS_COMPILE = x86_64-apple-darwin25.3-
     CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),macos-arm64)
-    CROSS_COMPILE = aarch64-apple-darwin-
+    CROSS_COMPILE = aarch64-apple-darwin25.3-
     CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),ios-arm64)
@@ -81,11 +81,11 @@ else ifeq ($(TARGET),ios-arm64)
     CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm64)
-    CROSS_COMPILE = aarch64-linux-android-
+    CROSS_COMPILE = aarch64-linux-android35-
     CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm)
-    CROSS_COMPILE = armv7a-linux-android-
+    CROSS_COMPILE = armv7a-linux-androideabi35-
     CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else
@@ -265,6 +265,10 @@ info:
 	@echo "Flags:           $(CFLAGS)"
 	@echo "Build dir:       $(BUILD_DIR)"
 
+# Create build directory
+$(BUILD_DIR):
+	@$(MKDIR) -p $@
+
 # Compile source files to object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	@echo "[CC] $< -> $@"
@@ -283,7 +287,7 @@ ifeq ($(COMPILER),MSVC)
 	@lib.exe /OUT:$@ $^
 else
 	@$(AR) rcs $@ $^
-	@$(RANLIB) $@
+#	@$(RANLIB) $@
 endif
 	@echo "[✓] Static library created: $@"
 

@@ -11,9 +11,9 @@
 需求分析    ✅ 完成
 设计方案    ✅ 完成
 Makefile    ✅ 完成（增强交叉编译支持）
-build.bat   ✅ 完成（增强交叉编译支持）
-build.ps1   ✅ 完成（新建 PowerShell 脚本）
-build.sh    ✅ 完成（增强交叉编译支持）
+try_build.bat   ✅ 完成（增强交叉编译支持）
+try_build.ps1   ✅ 完成（新建 PowerShell 脚本）
+try_build.sh    ✅ 完成（增强交叉编译支持）
 诊断工具    ✅ 完成（check-toolchains.bat）
 文档        ✅ 完成（5 份详细文档）
 测试        ✅ 完成
@@ -297,8 +297,8 @@ make docs        # 生成文档
 
 ### 代码修改
 - Makefile: +300 行 (交叉编译支持)
-- build.bat: +150 行 (交叉编译参数)
-- build.sh: +200 行 (增强脚本)
+- try_build.bat: +150 行 (交叉编译参数)
+- try_build.sh: +200 行 (增强脚本)
 - Keccak.c: 完全重写 (FIPS 202 合规)
 - Keccak.h: +100 行 (完整文档)
 - test.c: +100 行 (12 组随机测试)

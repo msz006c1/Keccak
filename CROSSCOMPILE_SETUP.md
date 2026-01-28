@@ -12,7 +12,7 @@
 ### 2. 构建脚本
 - ✅ **build.bat** - Windows 批处理脚本，支持交叉编译
 - ✅ **build.ps1** - PowerShell 脚本，更现代化的界面
-- ✅ **build.sh** - Bash 脚本，支持 Linux/macOS/WSL
+- ✅ **try_build.sh** - Bash 脚本，支持 Linux/macOS/WSL
 - ✅ **check-toolchains.bat** - 工具链检查脚本
 
 ### 3. 文档

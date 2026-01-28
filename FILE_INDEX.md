@@ -19,7 +19,7 @@ y:\Project\Keccak\
 │   ├── Makefile                     # ✨ 交叉编译主构建文件 (已增强)
 │   ├── build.bat                    # ✨ Windows 批处理脚本 (已增强)
 │   ├── build.ps1                    # ✨ PowerShell 脚本 (新增)
-│   ├── build.sh                     # ✨ Bash 脚本 (已增强)
+│   ├── try_build.sh                     # ✨ Bash 脚本 (已增强)
 │   └── check-toolchains.bat         # ✨ 工具链检查脚本 (新增)
 │
 ├── 📦 源代码 (Source Code)
@@ -117,7 +117,7 @@ y:\Project\Keccak\
 ```
 使用: check-toolchains.bat
 或:  .\build.ps1 -CheckToolchains
-或:  ./build.sh --check-toolchains
+或:  ./try_build.sh --check-toolchains
 ```
 
 ## 📋 文件详细说明
@@ -141,7 +141,7 @@ y:\Project\Keccak\
 | [Makefile](Makefile) | Unix/Linux/WSL | Make | 核心构建系统 |
 | [build.bat](build.bat) | Windows | Batch | 简化的 Windows 构建 |
 | [build.ps1](build.ps1) | Windows | PowerShell | 现代化的构建脚本 |
-| [build.sh](build.sh) | Unix/Linux/WSL | Bash | 跨平台构建脚本 |
+| [try_build.sh](try_build.sh) | Unix/Linux/WSL | Bash | 跨平台构建脚本 |
 | [check-toolchains.bat](check-toolchains.bat) | Windows | Batch | 工具链检查和诊断 |
 
 ### 源代码文件
@@ -218,9 +218,9 @@ y:\Project\Keccak\
         ↓                             ↓
         [开始编译]                 src/Keccak.c
         ↓                           src/Keccak.h
-    build.ps1                      tests/test.c
-   build.bat
-   build.sh
+    try_build.ps1                  tests/test.c
+   try_build.bat
+   try_build.sh
         ↓
         [问题?]
         ↓
@@ -242,9 +242,9 @@ y:\Project\Keccak\
 | 文件 | 大小 | 备注 |
 |------|------|------|
 | Makefile | ~500 行 | 构建配置 |
-| build.ps1 | ~350 行 | PowerShell 脚本 |
-| build.bat | ~200 行 | 批处理脚本 |
-| build.sh | ~250 行 | Bash 脚本 |
+| try_build.ps1 | ~350 行 | PowerShell 脚本 |
+| try_build.bat | ~200 行 | 批处理脚本 |
+| try_build.sh | ~250 行 | Bash 脚本 |
 | src/Keccak.c | ~600 行 | 实现文件 |
 | src/Keccak.h | ~150 行 | 头文件 |
 | tests/test.c | ~500 行 | 测试文件 |
