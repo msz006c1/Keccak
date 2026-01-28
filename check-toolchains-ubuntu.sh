@@ -13,13 +13,15 @@
 #
 ###############################################################################
 
-# Color codes for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Color codes disabled - plain output only
+RED=''
+GREEN=''
+YELLOW=''
+BLUE=''
+CYAN=''
+BOLD=''
+DIM=''
+NC=''
 
 # Counters
 found_count=0
@@ -228,11 +230,17 @@ fi
 
 ((total_checks++))
 
-check_toolchain "Android NDK (aarch64)" "aarch64-linux-android-gcc" \
-    "Android ARM64" "android-ndk (manual installation)"
+check_toolchain "Android NDK (aarch64)" "aarch64-linux-android-clang" \
+    "Android ARM64 (Clang)" "android-ndk (manual installation)"
 
-check_toolchain "Android NDK (armv7a)" "armv7a-linux-androideabi-gcc" \
-    "Android ARMv7" "android-ndk (manual installation)"
+check_toolchain "Android NDK (armv7a)" "armv7a-linux-android-clang" \
+    "Android ARMv7 (Clang)" "android-ndk (manual installation)"
+
+check_toolchain "Android NDK (x86_64)" "x86_64-linux-android-clang" \
+    "Android x86_64 (Clang)" "android-ndk (manual installation)"
+
+check_toolchain "Android NDK (x86)" "i686-linux-android-clang" \
+    "Android x86 (Clang)" "android-ndk (manual installation)"
 
 # ============================================================================
 # Check for Additional Development Tools
@@ -321,12 +329,15 @@ echo "   - LLVM/Clang: ${YELLOW}${SUDO_PREFIX}apt install clang lldb lld${NC}"
 echo "   - Code Analysis: ${YELLOW}${SUDO_PREFIX}apt install cppcheck clang-tools valgrind${NC}"
 echo ""
 
-echo "5. ${CYAN}Android NDK Setup:${NC}"
+echo "5. ${CYAN}Android NDK Setup (Clang/LLVM):${NC}"
 echo "   - Download from: https://developer.android.com/ndk/downloads"
 echo "   - Extract to a directory, e.g.: ~/android-ndk"
+echo "   - Modern NDK (r21+) uses Clang by default"
 echo "   - Add to .bashrc or .profile:"
-echo "     ${YELLOW}export ANDROID_NDK_HOME=~/android-ndk/android-ndk-r25c${NC}"
+echo "     ${YELLOW}export ANDROID_NDK_HOME=~/android-ndk/android-ndk-r26c${NC}"
 echo "     ${YELLOW}export PATH=\$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:\$PATH${NC}"
+echo "   - Verify Clang is available:"
+echo "     ${YELLOW}aarch64-linux-android-clang --version${NC}"
 echo ""
 
 echo "6. ${CYAN}macOS/iOS Cross-Compilation:${NC}"
@@ -372,6 +383,13 @@ echo ""
 
 echo "7. ${CYAN}Check build configuration:${NC}"
 echo "   ${YELLOW}make info${NC}"
+echo ""
+
+echo "8. ${CYAN}Cross-compile for Android (Clang):${NC}"
+echo "   ${YELLOW}make TARGET=android-arm clean lib${NC}"
+echo "   ${YELLOW}make TARGET=android-arm64 clean lib${NC}"
+echo "   ${YELLOW}make TARGET=android-x86 clean lib${NC}"
+echo "   ${YELLOW}make TARGET=android-x86_64 clean lib${NC}"
 echo ""
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"

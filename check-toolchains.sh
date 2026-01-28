@@ -166,13 +166,13 @@ check_toolchain "iOS ARM64" "arm64-apple-ios-clang" \
 
 echo ""
 echo -e "${YELLOW}Android Targets:${NC}"
-check_toolchain "Android NDK (aarch64)" "aarch64-linux-android-gcc" \
-    "Android ARM64" \
-    "Download and install Android NDK"
+check_toolchain "Android NDK (aarch64)" "aarch64-linux-android-clang" \
+    "Android ARM64 (Clang)" \
+    "Download and install Android NDK (r21+)"
 
-check_toolchain "Android NDK (armv7a)" "armv7a-linux-androideabi-gcc" \
-    "Android ARMv7" \
-    "Download and install Android NDK"
+check_toolchain "Android NDK (armv7a)" "armv7a-linux-android-clang" \
+    "Android ARMv7 (Clang)" \
+    "Download and install Android NDK (r21+)"
 
 # ============================================================================
 # Check for Additional Tools

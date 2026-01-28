@@ -82,11 +82,11 @@ else ifeq ($(TARGET),ios-arm64)
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm64)
     CROSS_COMPILE = aarch64-linux-android-
-    CC ?= $(CROSS_COMPILE)gcc
+    CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm)
-    CROSS_COMPILE = armv7a-linux-androideabi-
-    CC ?= $(CROSS_COMPILE)gcc
+    CROSS_COMPILE = armv7a-linux-android-
+    CC ?= $(CROSS_COMPILE)clang
     AR ?= $(CROSS_COMPILE)ar
 else
     # Default fallback for undefined targets

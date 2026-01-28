@@ -111,24 +111,24 @@ echo.
 
 REM Check for Android toolchains
 echo [9] Checking for Android ARM64 toolchain...
-where aarch64-linux-android-gcc >nul 2>nul
+where aarch64-linux-android-clang >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     set "found_any=1"
-    echo   [✓] aarch64-linux-android-gcc found
+    echo   [✓] aarch64-linux-android-clang found
 ) else (
-    echo   [✗] aarch64-linux-android-gcc not found
-    echo      Install: Android NDK
+    echo   [✗] aarch64-linux-android-clang not found
+    echo      Install: Android NDK (r21+)
 )
 echo.
 
 echo [10] Checking for Android ARMv7 toolchain...
-where armv7a-linux-androideabi-gcc >nul 2>nul
+where armv7a-linux-android-clang >nul 2>nul
 if %ERRORLEVEL% equ 0 (
     set "found_any=1"
-    echo   [✓] armv7a-linux-androideabi-gcc found
+    echo   [✓] armv7a-linux-android-clang found
 ) else (
-    echo   [✗] armv7a-linux-androideabi-gcc not found
-    echo      Install: Android NDK
+    echo   [✗] armv7a-linux-android-clang not found
+    echo      Install: Android NDK (r21+)
 )
 echo.
 

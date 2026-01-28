@@ -121,8 +121,8 @@ if ($CheckToolchains) {
         "x86_64-apple-darwin-clang" = "macOS Intel"
         "aarch64-apple-darwin-clang" = "macOS ARM64"
         "arm64-apple-ios-clang" = "iOS ARM64"
-        "aarch64-linux-android-gcc" = "Android ARM64"
-        "armv7a-linux-androideabi-gcc" = "Android ARMv7"
+        "aarch64-linux-android-clang" = "Android ARM64"
+        "armv7a-linux-android-clang" = "Android ARMv7"
     }
     
     $foundAny = $false

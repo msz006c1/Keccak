@@ -231,8 +231,8 @@ Cross-Compile:   aarch64-linux-gnu-
 | macos-x86_64 | x86_64-apple-darwin- | clang |
 | macos-arm64 | aarch64-apple-darwin- | clang |
 | ios-arm64 | arm64-apple-ios- | clang |
-| android-arm64 | aarch64-linux-android- | gcc |
-| android-arm | armv7a-linux-androideabi- | gcc |
+| android-arm64 | aarch64-linux-android- | clang |
+| android-arm | armv7a-linux-android- | clang |
 
 ### MSYS2 安装清单
 

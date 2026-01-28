@@ -204,8 +204,8 @@ y:\Project\Keccak\
 | macOS x86_64 | `make TARGET=macos-x86_64` | x86_64-apple-darwin-clang | macOS Intel |
 | macOS ARM64 | `make TARGET=macos-arm64` | aarch64-apple-darwin-clang | macOS M1/M2 |
 | iOS ARM64 | `make TARGET=ios-arm64` | arm64-apple-ios-clang | iOS |
-| Android ARM64 | `make TARGET=android-arm64` | aarch64-linux-android-gcc | Android |
-| Android ARMv7 | `make TARGET=android-arm` | armv7a-linux-androideabi-gcc | Android |
+| Android ARM64 | `make TARGET=android-arm64` | aarch64-linux-android-clang | Android |
+| Android ARMv7 | `make TARGET=android-arm` | armv7a-linux-android-clang | Android |
 
 ## 🔗 文件间的关系
 
