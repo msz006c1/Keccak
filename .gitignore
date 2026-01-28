@@ -1,2 +1,5 @@
 toolchain.txt
 .vscode/launch.json
+build/Keccak.o
+build/libkeccak.a
+build/test.o
