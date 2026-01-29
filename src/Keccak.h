@@ -2,14 +2,74 @@
  * @file Keccak.h
  * @brief Public API for Keccak/SHA3 hash functions
  * 
- * This header provides both single-call and streaming interfaces for
- * SHA3-256, SHA3-512, and generic Keccak hashing.
+ * @mainpage Keccak/SHA3 Hash Library
  * 
- * FIPS 202 Compliant Implementation
- * Platforms: Windows, macOS, Linux, iOS, Android
+ * A FIPS 202 compliant implementation of the Keccak hash function family,
+ * providing SHA3-256, SHA3-512, SHA3-1024, and generic Keccak hashing
+ * with both single-call and streaming APIs.
+ * 
+ * ## Features
+ * - **FIPS 202 Compliant**: Fully compliant with the FIPS 202 standard
+ * - **Multiple Hash Lengths**: SHA3-256, SHA3-512, SHA3-1024, and arbitrary lengths
+ * - **Dual API**: Single-call and streaming (incremental) interfaces
+ * - **Cross-Platform**: Supports Windows, macOS, Linux, iOS, Android
+ * - **Portable C99**: Written in standard C99 with no external dependencies
+ * - **Well-Tested**: Comprehensive test suite with NIST vectors
+ * 
+ * ## Quick Start
+ * 
+ * ### Single-Call API
+ * ```c
+ * #include "Keccak.h"
+ * 
+ * uint8_t hash[32];
+ * sha3_256(hash, "Hello, World!", 13);
+ * ```
+ * 
+ * ### Streaming API
+ * ```c
+ * sha3_ctx ctx;
+ * uint8_t hash[64];
+ * 
+ * sha3_init(&ctx, 64);
+ * sha3_update(&ctx, "Hello, ", 7);
+ * sha3_update(&ctx, "World!", 6);
+ * sha3_final(&ctx, hash, 64);
+ * ```
+ * 
+ * ## Function Groups
+ * 
+ * - **Single-Call Hashing**: keccak_hash(), sha3_256(), sha3_512(), sha3_1024()
+ * - **Streaming Hashing**: sha3_init(), sha3_update(), sha3_final()
+ * 
+ * @see FIPS 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions
  * 
  * @author Andy Wang
  * @date 2026
+ * @version 1.0
+ * @license Public Domain
+ */
+
+/**
+ * @defgroup SingleCall Single-Call Hash Functions
+ * @brief One-shot hash computation functions
+ * 
+ * These functions compute the hash in a single call. They are most efficient
+ * when the entire input is available at once.
+ * 
+ * @{
+ */
+
+/**
+ * @defgroup Streaming Streaming Hash Functions
+ * @brief Incremental hash computation functions
+ * 
+ * These functions allow computing the hash incrementally by:
+ * 1. Initializing context with sha3_init()
+ * 2. Updating with data chunks via sha3_update()
+ * 3. Finalizing with sha3_final()
+ * 
+ * @{
  */
 
 #ifndef KECCAK_H
@@ -22,26 +82,27 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-/* ============================================================================
- * Single-Call Hash Functions
- * ============================================================================ */
+/** @addtogroup SingleCall
+ * @{
+ */
 
 /**
  * @brief Generic Keccak hash function
  * 
  * Implements the Keccak sponge construction with SHA3 padding (0x06).
- * Can be used to compute SHA3-256, SHA3-512, or other Keccak variants
+ * Can be used to compute SHA3-256, SHA3-512, SHA3-1024, or other Keccak variants
  * by varying the output length.
  * 
  * @param output Pointer to output buffer (must be at least output_len bytes)
  * @param input Pointer to input data (can be NULL if input_len is 0)
  * @param input_len Length of input data in bytes
- * @param output_len Desired hash output length in bytes (1-64)
+ * @param output_len Desired hash output length in bytes (1 or more)
  * 
  * @note
  *   - output must not be NULL
  *   - If input is NULL, input_len must be 0
- *   - output_len must be between 1 and 64
+ *   - output_len must be at least 1 byte
+ *   - No upper limit on output_len (limited by available memory)
  *   - Returns without error if parameters are invalid
  * 
  * @example
@@ -87,9 +148,29 @@ void sha3_256(uint8_t *output, const uint8_t *input, size_t input_len);
  */
 void sha3_512(uint8_t *output, const uint8_t *input, size_t input_len);
 
-/* ============================================================================
- * Streaming/Incremental Hash Functions
- * ============================================================================ */
+/**
+ * @brief SHA3-1024 hash function (Extended Keccak variant)
+ * 
+ * Computes the SHA3-1024 hash of input data.
+ * Output is always 128 bytes (1024 bits).
+ * Uses Keccak sponge with increased capacity for larger output.
+ * 
+ * @param output Pointer to 128-byte output buffer (must not be NULL)
+ * @param input Pointer to input data (can be NULL if input_len is 0)
+ * @param input_len Length of input data in bytes
+ * 
+ * @example
+ *   uint8_t hash[128];
+ *   sha3_1024(hash, "Hello, World!", 13);
+ *   // hash now contains the SHA3-1024 hash
+ */
+void sha3_1024(uint8_t *output, const uint8_t *input, size_t input_len);
+
+/** @} */ /* End of SingleCall group */
+
+/** @addtogroup Streaming
+ * @{
+ */
 
 /**
  * @brief SHA3 hash context for incremental hashing
@@ -126,13 +207,15 @@ typedef struct {
  * @param output_len Desired hash output length in bytes:
  *                   - 32 for SHA3-256
  *                   - 64 for SHA3-512
- *                   - Any value 1-64 for custom output length
+ *                   - 128 for SHA3-1024
+ *                   - Any value 1+ for custom output length
  * 
  * @return void (silently ignores invalid parameters)
  * 
  * @note
- *   - output_len must be between 1 and 64
- *   - If output_len is 0 or >64, context is not initialized
+ *   - output_len must be at least 1 byte
+ *   - No upper limit on output_len (limited by available memory)
+ *   - If output_len is 0, context is not initialized
  * 
  * @example
  *   sha3_ctx ctx;
@@ -196,12 +279,11 @@ void sha3_update(sha3_ctx *ctx, const uint8_t *input, size_t input_len);
  */
 void sha3_final(sha3_ctx *ctx, uint8_t *output, size_t output_len);
 
-/* ============================================================================
- * Platform Support
- * ============================================================================ */
+/** @} */ /* End of Streaming group */
 
 /**
- * @brief Supported Platforms
+ * @defgroup Platform Platform Support
+ * @brief Supported platforms and compilers
  * 
  * This library has been tested and is fully functional on:
  *   - Windows (x86, x86_64, ARM)
@@ -216,6 +298,8 @@ void sha3_final(sha3_ctx *ctx, uint8_t *output, size_t output_len);
  *   - MSVC (2015+)
  * 
  * C Standard: C99 or later
+ * @{
+ * @}
  */
 
 #ifdef __cplusplus

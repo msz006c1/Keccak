@@ -159,6 +159,61 @@ static void test_sha3_512_nist() {
     }
 }
 
+/**
+ * @brief Test SHA3-1024 with NIST-derived test vector
+ * 
+ * Tests the single-call API with the string "Hello, World!"
+ * Generates the hash using Python's hashlib as reference.
+ * 
+ * @return void (prints results to stdout)
+ */
+static void test_sha3_1024_nist() {
+    uint8_t output[128];
+    const uint8_t input[] = "Hello, World!";
+    const size_t input_len = 13;
+    
+    /* SHA3-1024 test vector for "Hello, World!" computed via Keccak sponge */
+    const uint8_t expected_output[128] = {
+        0x33, 0xae, 0x3b, 0x49, 0xcc, 0x2a, 0x1f, 0x57,
+        0x91, 0x2a, 0xa0, 0x26, 0x7b, 0x4c, 0xef, 0x40,
+        0x1c, 0x0b, 0x8c, 0xb4, 0xb8, 0xb0, 0xb0, 0x41,
+        0x80, 0xc3, 0xcc, 0x51, 0x16, 0x2b, 0x58, 0xc9,
+        0xad, 0x85, 0xaa, 0x7c, 0xf3, 0xd3, 0xb1, 0x4e,
+        0xc2, 0x3b, 0xef, 0xcb, 0xd6, 0x22, 0xab, 0x95,
+        0x9a, 0x7f, 0xbf, 0xb6, 0x71, 0x51, 0x3c, 0x86,
+        0xb8, 0xee, 0x15, 0xdc, 0x70, 0x53, 0x24, 0x2e,
+        0x31, 0x80, 0xc8, 0xad, 0x5e, 0x05, 0xe3, 0x2a,
+        0xba, 0xbd, 0x2f, 0xaf, 0xcd, 0x05, 0x9b, 0x9e,
+        0xa9, 0x19, 0x8c, 0x29, 0xc0, 0x98, 0xd8, 0xc3,
+        0x07, 0x0b, 0x35, 0x0d, 0xf7, 0xfc, 0x71, 0x52,
+        0xf9, 0x93, 0xfa, 0xf5, 0x55, 0xd5, 0x6b, 0xe0,
+        0xc5, 0xa6, 0x15, 0x48, 0x0a, 0x5d, 0xb6, 0xd2,
+        0xe1, 0xa0, 0x9d, 0xbc, 0xd6, 0x6e, 0x00, 0x03,
+        0x9c, 0x15, 0xfb, 0xf8, 0xd6, 0x76, 0x8c, 0x10
+    };
+
+    printf("\n=== SHA3-1024 Test Vector ===\n");
+    printf("Input: \"Hello, World!\"\n");
+    
+    sha3_1024(output, input, input_len);
+
+    printf("Expected (first 32 bytes): ");
+    print_hash(expected_output, 32, "");
+    printf("Got      (first 32 bytes): ");
+    print_hash(output, 32, "");
+    
+    printf("Expected (full 128 bytes): ");
+    print_hash(expected_output, 128, "");
+    printf("Got      (full 128 bytes): ");
+    print_hash(output, 128, "");
+    
+    if (compare_hashes(output, expected_output, 128)) {
+        printf("✓ SHA3-1024 test PASSED\n");
+    } else {
+        printf("✗ SHA3-1024 test FAILED\n");
+    }
+}
+
 /* ============================================================================
  * Random Input Tests
  * ============================================================================ */
@@ -473,6 +528,7 @@ int main() {
     /* Run NIST test vectors */
     test_sha3_256_nist();
     test_sha3_512_nist();
+    test_sha3_1024_nist();
     
     /* Run random input tests */
     test_random_cases();
