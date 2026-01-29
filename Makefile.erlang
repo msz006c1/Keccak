@@ -1,0 +1,67 @@
+# Simple Makefile for building Erlang NIF for Keccak
+
+# Compiler settings
+CC ?= gcc
+CFLAGS ?= -O2 -Wall -Wextra -fPIC -shared
+ERL_C_INCLUDE_DIR ?= $(shell erl -eval 'io:format("~s/erts-*/include", [code:root_dir()]), halt().' -noshell)
+
+# Directories
+BUILD_DIR = priv
+EBIN_DIR = ebin
+
+# Source files
+C_SRC = c_src/keccak_nif.c
+ERL_SRC = src/keccak.erl
+TEST_SRC = test_keccak.erl
+
+# Output files
+NIF_SO = $(BUILD_DIR)/keccak.so
+ERL_BEAM = $(EBIN_DIR)/keccak.beam
+TEST_BEAM = $(EBIN_DIR)/test_keccak.beam
+
+.PHONY: all clean nif erlang test
+
+all: nif erlang
+
+# Build the NIF shared library
+nif: $(NIF_SO)
+
+$(NIF_SO): $(C_SRC) | $(BUILD_DIR)
+	@echo "[CC] Compiling NIF: $< -> $@"
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -I$(ERL_C_INCLUDE_DIR) -I../src -o $@ $<
+
+# Compile Erlang modules
+erlang: $(ERL_BEAM) $(TEST_BEAM)
+
+$(ERL_BEAM): $(ERL_SRC) | $(EBIN_DIR)
+	@echo "[ERLC] Compiling Erlang: $< -> $@"
+	@erlc -o $(EBIN_DIR) $<
+
+$(TEST_BEAM): $(TEST_SRC) | $(EBIN_DIR)
+	@echo "[ERLC] Compiling test: $< -> $@"
+	@erlc -o $(EBIN_DIR) $<
+
+# Create directories
+$(BUILD_DIR) $(EBIN_DIR):
+	@mkdir -p $@
+
+# Clean build artifacts
+clean:
+	@echo "[CLEAN] Removing build artifacts..."
+	@rm -rf $(BUILD_DIR) $(EBIN_DIR)
+	@echo "[✓] Clean complete"
+
+# Test the NIF
+test: all
+	@echo "[TEST] Testing Erlang NIF..."
+	@erl -pa $(EBIN_DIR) -noshell -eval ' \
+		io:format("Loading keccak module...~n"), \
+		case code:ensure_loaded(keccak) of \
+			{module, keccak} -> \
+				io:format("Module loaded successfully.~n"), \
+				test_keccak:run_tests(); \
+			{error, Reason} -> \
+				io:format("Failed to load module: ~p~n", [Reason]) \
+		end, \
+		halt().'

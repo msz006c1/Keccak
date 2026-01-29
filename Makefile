@@ -51,47 +51,58 @@ endif
 ifeq ($(TARGET),windows-native)
     CROSS_COMPILE =
     CC ?= gcc
+    CXX ?= g++
     AR ?= ar
 else ifeq ($(TARGET),windows-32)
     CROSS_COMPILE = i686-w64-mingw32-
     CC ?= $(CROSS_COMPILE)gcc
+    CXX ?= $(CROSS_COMPILE)g++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),linux-x86_64)
     CROSS_COMPILE = x86_64-linux-gnu-
     CC ?= $(CROSS_COMPILE)gcc
+    CXX ?= $(CROSS_COMPILE)g++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),linux-arm64)
     CROSS_COMPILE = aarch64-linux-gnu-
     CC ?= $(CROSS_COMPILE)gcc
+    CXX ?= $(CROSS_COMPILE)g++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),linux-arm)
     CROSS_COMPILE = arm-linux-gnueabihf-
     CC ?= $(CROSS_COMPILE)gcc
+    CXX ?= $(CROSS_COMPILE)g++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),macos-x86_64)
     CROSS_COMPILE = x86_64-apple-darwin25.3-
     CC ?= $(CROSS_COMPILE)clang
+    CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),macos-arm64)
     CROSS_COMPILE = aarch64-apple-darwin25.3-
     CC ?= $(CROSS_COMPILE)clang
+    CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),ios-arm64)
     CROSS_COMPILE = arm64-apple-ios-
     CC ?= $(CROSS_COMPILE)clang
+    CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm64)
     CROSS_COMPILE = aarch64-linux-android35-
     CC ?= $(CROSS_COMPILE)clang
+    CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm)
     CROSS_COMPILE = armv7a-linux-androideabi35-
     CC ?= $(CROSS_COMPILE)clang
+    CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else
     # Default fallback for undefined targets
     CROSS_COMPILE =
     CC ?= gcc
+    CXX ?= g++
     AR ?= ar
 endif
 
@@ -108,6 +119,15 @@ LIB_NAME = keccak
 STATIC_LIB = $(BUILD_DIR)/lib$(LIB_NAME).a
 TEST_EXECUTABLE = $(BUILD_DIR)/test_$(LIB_NAME)
 DOXYGEN_FILE = Doxyfile
+
+# Define shared library name
+ifeq ($(PLATFORM),WINDOWS)
+    SHARED_LIB = $(BUILD_DIR)/$(LIB_NAME).dll
+else ifeq ($(PLATFORM),MACOS)
+    SHARED_LIB = $(BUILD_DIR)/lib$(LIB_NAME).dylib
+else
+    SHARED_LIB = $(BUILD_DIR)/lib$(LIB_NAME).so
+endif
 
 # Source files
 SRC_FILES = $(SRC_DIR)/Keccak.c $(SRC_DIR)/sha3.c
@@ -236,8 +256,52 @@ endif
 # Additional debug/release flags
 ifdef DEBUG
     CFLAGS += -g -O0 -D_DEBUG
+    CXXFLAGS += -g -O0 -D_DEBUG
 else
     CFLAGS += -DNDEBUG
+    CXXFLAGS += -DNDEBUG
+endif
+
+# C++ specific flags
+CXXFLAGS += -Wall -Wextra -std=c++11 -I$(INCLUDE_DIR) -fPIC
+CXXFLAGS += -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L
+
+# Optimization flags for C++
+CXXFLAGS += -O2
+
+# Platform-specific flags for C++
+ifeq ($(PLATFORM),WINDOWS)
+    CXXFLAGS += -D_WIN32_WINNT=0x0601
+else ifeq ($(PLATFORM),MACOS)
+    CXXFLAGS += -D_DARWIN_C_SOURCE
+    CXXFLAGS += -mmacosx-version-min=10.7
+else ifeq ($(PLATFORM),IOS)
+    CXXFLAGS += -D_DARWIN_C_SOURCE
+    CXXFLAGS += -fPIC
+    CXXFLAGS += -arch arm64
+    CXXFLAGS += -isysroot $(SDKROOT)
+else ifeq ($(PLATFORM),LINUX)
+    CXXFLAGS += -D_POSIX_C_SOURCE=200809L
+else ifeq ($(PLATFORM),ANDROID)
+    CXXFLAGS += -D_POSIX_C_SOURCE=200809L
+    CXXFLAGS += -fPIC
+else
+    # Default Unix-like
+    CXXFLAGS += -D_POSIX_C_SOURCE=200809L
+endif
+
+# Compiler-specific flags for C++
+ifeq ($(COMPILER),CLANG)
+    CXXFLAGS += -Wno-reserved-id-macro
+else ifeq ($(COMPILER),GCC)
+    # Note: -Wstrict-prototypes is not valid for C++, so we don't include it for CXXFLAGS
+    # Only include C-specific flags that are also valid for C++
+    CXXFLAGS += -Wall -Wextra
+else ifeq ($(COMPILER),MSVC)
+    CXXFLAGS = /Wall /std:c++11 /I$(INCLUDE_DIR)
+    CXXFLAGS += /O2
+    CXXFLAGS += /D_CRT_SECURE_NO_WARNINGS
+    CXXFLAGS += /D_WINDOWS
 endif
 
 # ============================================================================
@@ -295,6 +359,23 @@ else
 endif
 	@echo "[✓] Static library created: $@"
 
+# Build shared library
+shared: $(SHARED_LIB)
+
+$(SHARED_LIB): $(OBJ_FILES) | $(BUILD_DIR)
+	@echo "[CC] Creating shared library: $@"
+	@$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
+	@echo "[✓] Shared library created: $@"
+
+# Define shared library name
+ifeq ($(PLATFORM),WINDOWS)
+    SHARED_LIB = $(BUILD_DIR)/$(LIB_NAME).dll
+else ifeq ($(PLATFORM),MACOS)
+    SHARED_LIB = $(BUILD_DIR)/lib$(LIB_NAME).dylib
+else
+    SHARED_LIB = $(BUILD_DIR)/lib$(LIB_NAME).so
+endif
+
 # Build test executable
 test: $(TEST_EXECUTABLE)
 	@echo "[✓] Test executable created: $@"
@@ -304,6 +385,18 @@ test: $(TEST_EXECUTABLE)
 $(TEST_EXECUTABLE): lib $(BUILD_DIR)/test.o | $(BUILD_DIR)
 	@echo "[LD] Linking test executable: $@"
 	@$(CC) $(CFLAGS) -o $@ $(BUILD_DIR)/test.o $(STATIC_LIB) $(LDFLAGS)
+
+# Build C++ example executable
+cpp-example: $(BUILD_DIR)/cpp_example
+
+$(BUILD_DIR)/cpp_example: lib $(BUILD_DIR)/cpp_example.o | $(BUILD_DIR)
+	@echo "[LD] Linking C++ example executable: $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $(BUILD_DIR)/cpp_example.o $(STATIC_LIB) $(LDFLAGS)
+
+# Compile C++ example
+$(BUILD_DIR)/cpp_example.o: examples/cpp_example.cpp | $(BUILD_DIR)
+	@echo "[CXX] $< -> $@"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Generate Doxygen documentation
 docs: $(DOXYGEN_FILE)
@@ -357,6 +450,7 @@ help:
 	@echo "  all           - Build static library (default)"
 	@echo "  lib           - Build static library"
 	@echo "  test          - Build and run test suite"
+	@echo "  cpp-example   - Build C++ wrapper example"
 	@echo "  docs          - Generate Doxygen documentation"
 	@echo "  clean         - Remove build artifacts"
 	@echo "  distclean     - Remove all generated files"
