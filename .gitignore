@@ -3,3 +3,5 @@ toolchain.txt
 build/Keccak.o
 build/libkeccak.a
 build/test.o
+build/sha3.o
+build/test_keccak

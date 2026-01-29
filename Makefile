@@ -110,9 +110,9 @@ TEST_EXECUTABLE = $(BUILD_DIR)/test_$(LIB_NAME)
 DOXYGEN_FILE = Doxyfile
 
 # Source files
-SRC_FILES = $(SRC_DIR)/Keccak.c
+SRC_FILES = $(SRC_DIR)/Keccak.c $(SRC_DIR)/sha3.c
 TEST_FILES = $(TEST_DIR)/test.c
-OBJ_FILES = $(BUILD_DIR)/Keccak.o
+OBJ_FILES = $(BUILD_DIR)/Keccak.o $(BUILD_DIR)/sha3.o
 TEST_OBJ_FILES = $(BUILD_DIR)/test.o
 
 # ============================================================================
@@ -270,7 +270,11 @@ $(BUILD_DIR):
 	@$(MKDIR) -p $@
 
 # Compile source files to object files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/Keccak.o: $(SRC_DIR)/Keccak.c | $(BUILD_DIR)
+	@echo "[CC] $< -> $@"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/sha3.o: $(SRC_DIR)/sha3.c | $(BUILD_DIR)
 	@echo "[CC] $< -> $@"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
@@ -317,9 +321,10 @@ else
 	@mkdir -p $(INSTALL_PREFIX)/include
 	@cp $(STATIC_LIB) $(INSTALL_PREFIX)/lib/
 	@cp $(SRC_DIR)/Keccak.h $(INSTALL_PREFIX)/include/
+	@cp $(SRC_DIR)/sha3.h $(INSTALL_PREFIX)/include/
 	@echo "[✓] Installation complete"
 	@echo "Library: $(INSTALL_PREFIX)/lib/lib$(LIB_NAME).a"
-	@echo "Header:  $(INSTALL_PREFIX)/include/Keccak.h"
+	@echo "Headers: $(INSTALL_PREFIX)/include/Keccak.h, $(INSTALL_PREFIX)/include/sha3.h"
 endif
 
 # Clean build artifacts

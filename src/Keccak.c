@@ -1,41 +1,34 @@
 /**
  * @file Keccak.c
- * @brief Implementation of the Keccak hash function family (SHA3)
+ * @brief Implementation of the core Keccak hash function (SHA3 foundation)
  *
- * This file implements the Keccak hash function family, including SHA3-256,
- * SHA3-512, SHA3-1024, and generic Keccak hashing. It provides both
- * single-call and incremental hashing APIs.
+ * This file implements the core Keccak hash function family, providing
+ * the Keccak-f[1600] permutation and generic sponge construction.
+ * This serves as the foundation for SHA3 and other derived hash functions.
  *
  * ## Implementation Details
- * 
- * - **Standard**: FIPS 202 SHA-3 Standard
+ *
+ * - **Standard**: FIPS 202 SHA-3 Standard foundation
  * - **Algorithm**: Keccak-f[1600] permutation with sponge construction
  * - **Padding**: SHA3 padding (0x06 followed by 0x80)
  * - **Rounds**: 24 permutation rounds
  * - **State Size**: 1600 bits (25 x 64-bit lanes)
- * 
+ *
  * ## Algorithm Overview
- * 
+ *
  * The Keccak sponge construction operates in two phases:
- * 
+ *
  * 1. **Absorption Phase**: Input is XORed into the state in blocks of size
  *    (1600 - 2*output_length) bits, followed by permutation.
- * 
+ *
  * 2. **Squeezing Phase**: Output blocks are extracted from the state,
  *    applying permutation between blocks as needed.
- * 
- * ## Security Properties
- * 
- * - **SHA3-256**: 256-bit security level
- * - **SHA3-512**: 512-bit security level
- * - **SHA3-1024**: 1024-bit security level
- * - **Extensible**: Supports arbitrary output lengths
  *
  * @author Andy Wang
  * @date 2026
  * @version 1.0
  * @license Public Domain
- * 
+ *
  * @see FIPS 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions
  * @see https://keccak.team/
  */
@@ -46,7 +39,7 @@
 
 /**
  * @defgroup Implementation Keccak Implementation Details
- * @ingroup Keccak
+ * @ingroup KeccakCore
  * @{
  */
 
@@ -75,34 +68,6 @@ static inline uint64_t rotl64(uint64_t x, int n) {
     return (x << n) | (x >> (64 - n));
 }
 
-/**
- * @brief Load a 64-bit little-endian value from unaligned memory
- */
-static inline uint64_t load64_le(const uint8_t *p) {
-    return ((uint64_t)p[0]) |
-           (((uint64_t)p[1]) << 8) |
-           (((uint64_t)p[2]) << 16) |
-           (((uint64_t)p[3]) << 24) |
-           (((uint64_t)p[4]) << 32) |
-           (((uint64_t)p[5]) << 40) |
-           (((uint64_t)p[6]) << 48) |
-           (((uint64_t)p[7]) << 56);
-}
-
-/**
- * @brief Store a 64-bit value to memory in little-endian format
- */
-static inline void store64_le(uint8_t *p, uint64_t v) {
-    p[0] = v & 0xFF;
-    p[1] = (v >> 8) & 0xFF;
-    p[2] = (v >> 16) & 0xFF;
-    p[3] = (v >> 24) & 0xFF;
-    p[4] = (v >> 32) & 0xFF;
-    p[5] = (v >> 40) & 0xFF;
-    p[6] = (v >> 48) & 0xFF;
-    p[7] = (v >> 56) & 0xFF;
-}
-
 /** @} */ /* End of Internal Utility Functions */
 
 /**
@@ -113,7 +78,7 @@ static inline void store64_le(uint8_t *p, uint64_t v) {
 /**
  * @brief Keccak-f[1600] permutation function - FIPS 202 compliant
  */
-static void keccak_f1600(uint64_t state[25]) {
+void keccak_f1600(uint64_t state[25]) {
     int round, x, y, i, j, t;
 
     for (round = 0; round < KECCAK_ROUNDS; round++) {
@@ -137,24 +102,24 @@ static void keccak_f1600(uint64_t state[25]) {
         /* This is a state machine that performs rotations while permuting */
         uint64_t B[25];
         memcpy(B, state, sizeof(B));
-        
+
         x = 1;
         y = 0;
         uint64_t current = B[x + 5 * y];
-        
+
         for (t = 0; t < 24; t++) {
             int new_x = y;
             int new_y = (2 * x + 3 * y) % 5;
             int rho_offset = ((t + 1) * (t + 2)) / 2;
-            
+
             uint64_t temp = B[new_x + 5 * new_y];
             B[new_x + 5 * new_y] = rotl64(current, rho_offset % 64);
             current = temp;
-            
+
             x = new_x;
             y = new_y;
         }
-        
+
         memcpy(state, B, sizeof(B));
 
         /* Chi */
@@ -173,19 +138,47 @@ static void keccak_f1600(uint64_t state[25]) {
         if (round == 0) {
             R_state = 1;
         }
-        
+
         for (j = 0; j < 7; j++) {
             R_state = ((R_state << 1) ^ ((R_state >> 7) * 0x71)) % 256;
             if (R_state & 2) {
                 RC ^= (1ULL << ((1 << j) - 1));
             }
         }
-        
+
         state[0] ^= RC;
     }
 }
 
 /** @} */ /* End of Keccak-f Permutation */
+
+/**
+ * @brief Load a 64-bit little-endian value from unaligned memory
+ */
+uint64_t load64_le(const uint8_t *p) {
+    return ((uint64_t)p[0]) |
+           (((uint64_t)p[1]) << 8) |
+           (((uint64_t)p[2]) << 16) |
+           (((uint64_t)p[3]) << 24) |
+           (((uint64_t)p[4]) << 32) |
+           (((uint64_t)p[5]) << 40) |
+           (((uint64_t)p[6]) << 48) |
+           (((uint64_t)p[7]) << 56);
+}
+
+/**
+ * @brief Store a 64-bit value to memory in little-endian format
+ */
+void store64_le(uint8_t *p, uint64_t v) {
+    p[0] = v & 0xFF;
+    p[1] = (v >> 8) & 0xFF;
+    p[2] = (v >> 16) & 0xFF;
+    p[3] = (v >> 24) & 0xFF;
+    p[4] = (v >> 32) & 0xFF;
+    p[5] = (v >> 40) & 0xFF;
+    p[6] = (v >> 48) & 0xFF;
+    p[7] = (v >> 56) & 0xFF;
+}
 
 /** @} */ /* End of Implementation group */
 
@@ -273,129 +266,6 @@ void keccak_hash(uint8_t *output, const uint8_t *input, size_t input_len, size_t
         // Apply permutation if we need more output
         if (i < output_len) {
             keccak_f1600(state);
-        }
-    }
-}
-
-/**
- * @brief SHA3-256 hash function
- */
-void sha3_256(uint8_t *output, const uint8_t *input, size_t input_len) {
-    keccak_hash(output, input, input_len, 32);
-}
-
-/**
- * @brief SHA3-512 hash function
- */
-void sha3_512(uint8_t *output, const uint8_t *input, size_t input_len) {
-    keccak_hash(output, input, input_len, 64);
-}
-
-/**
- * @brief SHA3-1024 hash function (Extended Keccak variant)
- * 
- * Computes the SHA3-1024 hash of input data using the Keccak sponge
- * construction with increased capacity to safely support 128-byte output.
- * 
- * Output length: 128 bytes (1024 bits)
- * Capacity: 1024 bits
- * Rate: 576 bits (72 bytes)
- */
-void sha3_1024(uint8_t *output, const uint8_t *input, size_t input_len) {
-    keccak_hash(output, input, input_len, 128);
-}
-
-/* ============================================================================
- * Streaming/Incremental Hash Functions
- * ============================================================================ */
-void sha3_init(sha3_ctx *ctx, size_t output_len) {
-    if (ctx == NULL || output_len == 0) {
-        return;
-    }
-
-    memset(ctx, 0, sizeof(sha3_ctx));
-    ctx->rate = KECCAK_STATE_SIZE - 2 * output_len;
-    ctx->output_len = output_len;
-    ctx->block_pos = 0;
-    ctx->finalized = 0;
-    
-    // Initialize state to zero
-    memset(ctx->state, 0, sizeof(ctx->state));
-}
-
-/**
- * @brief Update SHA3 hash with new data
- */
-void sha3_update(sha3_ctx *ctx, const uint8_t *input, size_t input_len) {
-    if (ctx == NULL || ctx->finalized || input == NULL || input_len == 0) {
-        return;
-    }
-
-    size_t i;
-    for (i = 0; i < input_len; i++) {
-        ctx->state_bytes[ctx->block_pos] ^= input[i];
-        ctx->block_pos++;
-
-        if (ctx->block_pos == ctx->rate) {
-            // Convert bytes to state
-            for (int j = 0; j < 25; j++) {
-                ctx->state[j] = load64_le(&ctx->state_bytes[j * 8]);
-            }
-
-            keccak_f1600(ctx->state);
-
-            // Convert back to bytes
-            for (int j = 0; j < 25; j++) {
-                store64_le(&ctx->state_bytes[j * 8], ctx->state[j]);
-            }
-
-            ctx->block_pos = 0;
-        }
-    }
-}
-
-/**
- * @brief Finalize SHA3 hash and produce output
- */
-void sha3_final(sha3_ctx *ctx, uint8_t *output, size_t output_len) {
-    if (ctx == NULL || ctx->finalized || output == NULL || output_len != ctx->output_len) {
-        return;
-    }
-
-    ctx->finalized = 1;
-
-    // Apply padding
-    ctx->state_bytes[ctx->block_pos] ^= 0x06;
-    ctx->state_bytes[ctx->rate - 1] ^= 0x80;
-
-    // Convert to state and apply final permutation
-    for (int j = 0; j < 25; j++) {
-        ctx->state[j] = load64_le(&ctx->state_bytes[j * 8]);
-    }
-
-    keccak_f1600(ctx->state);
-
-    // Squeeze output
-    size_t i;
-    for (i = 0; i < output_len; ) {
-        // Convert state to bytes
-        for (int j = 0; j < 25; j++) {
-            store64_le(&ctx->state_bytes[j * 8], ctx->state[j]);
-        }
-
-        size_t remaining = output_len - i;
-        size_t copy_size = (remaining < ctx->rate) ? remaining : ctx->rate;
-
-        // Copy output
-        for (size_t j = 0; j < copy_size; j++) {
-            output[i + j] = ctx->state_bytes[j];
-        }
-
-        i += copy_size;
-
-        // Apply permutation if we need more output
-        if (i < output_len) {
-            keccak_f1600(ctx->state);
         }
     }
 }

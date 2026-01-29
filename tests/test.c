@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "Keccak.h"
+#include "sha3.h"
 
 /* ============================================================================
  * Utility Functions
