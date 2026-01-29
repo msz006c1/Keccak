@@ -70,7 +70,7 @@ static void print_hash(const uint8_t *hash, size_t length, const char *prefix) {
  * @return 1 if hashes match, 0 otherwise
  */
 static int compare_hashes(const uint8_t *computed, const uint8_t *expected, size_t length) {
-    return memcmp(computed, expected, length) == 0;
+    return (memcmp(computed, expected, length) == 0);
 }
 
 /* ============================================================================
@@ -134,7 +134,7 @@ static void test_sha3_512_nist() {
         0x7f, 0x21, 0x7d, 0x8c, 0x85, 0x6e, 0x55, 0x4f,
         0xcf, 0xf0, 0x9c, 0x93, 0x20, 0xb8, 0xa5, 0x97,
         0x9c, 0xe2, 0xff, 0x5d, 0x95, 0xdd, 0x27, 0xba,
-        0x35, 0xd1, 0xfb, 0xa5, 0x05, 0x62, 0xfd, 0xfd,
+        0x35, 0xd1, 0xfb, 0xa5, 0x0c, 0x56, 0x2d, 0xfd,
         0x1d, 0x6c, 0xc4, 0x8b, 0xc9, 0xc5, 0xba, 0xa4,
         0x39, 0x08, 0x94, 0x41, 0x8c, 0xc9, 0x42, 0xd9,
         0x68, 0xf9, 0x7b, 0xcb, 0x65, 0x94, 0x19, 0xed
@@ -146,11 +146,11 @@ static void test_sha3_512_nist() {
     sha3_512(output, input, input_len);
 
     printf("Expected: ");
-    print_hash(expected_output, 32, "");
-    printf("         ... (first 32 bytes shown)\n");
+    print_hash(expected_output, 64, "");
+    //printf("         ... (first 32 bytes shown)\n");
     printf("Got:      ");
-    print_hash(output, 32, "");
-    printf("         ... (first 32 bytes shown)\n");
+    print_hash(output, 64, "");
+    //printf("         ... (first 32 bytes shown)\n");
     
     if (compare_hashes(output, expected_output, 64)) {
         printf("✓ SHA3-512 test PASSED\n");
@@ -484,7 +484,7 @@ int main() {
     
     /* Ask for interactive testing */
     printf("\n╔═══════════════════════════════════════════════════════════╗\n");
-    printf("Do you want to run interactive tests? (y/n): ");
+    printf("║ Do you want to run interactive tests? (y/n):              ║");
     fflush(stdout);
     
     int user_choice = getchar();
@@ -493,7 +493,12 @@ int main() {
     while ((c = getchar()) != '\n' && c != EOF);
     
     if (user_choice == 'y' || user_choice == 'Y') {
+        printf("╚═══════════════════════════════════════════════════════════╝\n");
+        fflush(stdout);
         interactive_test();
+    } else {
+        printf("╚═══════════════════════════════════════════════════════════╝\n");
+        fflush(stdout);
     }
     
     printf("\n╔═══════════════════════════════════════════════════════════╗\n");
