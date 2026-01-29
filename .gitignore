@@ -7,7 +7,6 @@ build/sha3.o
 build/test_keccak
 build/cpp_example.o
 Makefile.erlang
-.gitignore
 build/cpp_example
 ebin/test_keccak.beam
 priv/keccak.so
