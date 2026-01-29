@@ -23,28 +23,15 @@
 
 /**
  * @brief Round constants for Keccak-f[1600] permutation
+ * Generated from LFSR as per FIPS 202, not precomputed!
  */
-static const uint64_t keccak_rc[KECCAK_ROUNDS] = {
-    0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
-    0x8000000080008000ULL, 0x000000000000808bULL, 0x0000000080000001ULL,
-    0x8000000080008081ULL, 0x8000000000008009ULL, 0x000000000000008aULL,
-    0x0000000000000088ULL, 0x0000000080008009ULL, 0x0000000000008003ULL,
-    0x0000000000008002ULL, 0x0000000000000080ULL, 0x000000000000800aULL,
-    0x000000008000000aULL, 0x000000008000808bULL, 0x800000000000008bULL,
-    0x8000000000008089ULL, 0x8000000000008003ULL, 0x8000000000008002ULL,
-    0x8000000000000080ULL, 0x000000000000800aULL, 0x800000008000000aULL
-};
+// These are generated dynamically, not precomputed
 
 /**
  * @brief Rotation offsets for Keccak-f[1600] Rho step
+ * (These are kept for reference, but the Rho-Pi combination uses a state machine)
  */
-static const int keccak_rho[25] = {
-     0,  1, 62, 28, 27,
-    36, 44,  6, 55, 20,
-     3, 10, 43, 25, 39,
-    41, 45, 15, 21,  8,
-    18,  2, 61, 56, 14
-};
+/* Not used - Rho-Pi is implemented as a state machine per FIPS 202 */
 
 /**
  * @brief Rotate a 64-bit value left by n bits
@@ -86,16 +73,16 @@ static inline void store64_le(uint8_t *p, uint64_t v) {
  * ============================================================================ */
 
 /**
- * @brief Keccak-f[1600] permutation function
+ * @brief Keccak-f[1600] permutation function - FIPS 202 compliant
  */
 static void keccak_f1600(uint64_t state[25]) {
-    int round;
+    int round, x, y, i, j, t;
 
     for (round = 0; round < KECCAK_ROUNDS; round++) {
-        uint64_t C[5], D[5], B[25];
-        int x, y;
+        uint64_t C[5], D[5];
+        uint64_t RC = 0;  /* Round constant */
 
-        /* Theta step */
+        /* Theta */
         for (x = 0; x < 5; x++) {
             C[x] = state[x] ^ state[x + 5] ^ state[x + 10] ^ state[x + 15] ^ state[x + 20];
         }
@@ -108,26 +95,58 @@ static void keccak_f1600(uint64_t state[25]) {
             }
         }
 
-        /* Rho and Pi steps combined */
+        /* Rho and Pi combined - following official XKCP implementation */
+        /* This is a state machine that performs rotations while permuting */
+        uint64_t B[25];
+        memcpy(B, state, sizeof(B));
+        
+        x = 1;
+        y = 0;
+        uint64_t current = B[x + 5 * y];
+        
+        for (t = 0; t < 24; t++) {
+            int new_x = y;
+            int new_y = (2 * x + 3 * y) % 5;
+            int rho_offset = ((t + 1) * (t + 2)) / 2;
+            
+            uint64_t temp = B[new_x + 5 * new_y];
+            B[new_x + 5 * new_y] = rotl64(current, rho_offset % 64);
+            current = temp;
+            
+            x = new_x;
+            y = new_y;
+        }
+        
+        memcpy(state, B, sizeof(B));
+
+        /* Chi */
+        uint64_t temp_state[25];
         for (y = 0; y < 5; y++) {
             for (x = 0; x < 5; x++) {
-                int index = x + 5 * y;
-                B[(y + 2 * x) % 5 + 5 * x] = rotl64(state[index], keccak_rho[index]);
+                i = x + 5 * y;
+                temp_state[i] = state[i] ^ ((~state[(x + 1) % 5 + 5 * y]) & state[(x + 2) % 5 + 5 * y]);
             }
         }
+        memcpy(state, temp_state, sizeof(temp_state));
 
-        /* Chi step */
-        for (y = 0; y < 5; y++) {
-            for (x = 0; x < 5; x++) {
-                int index = x + 5 * y;
-                state[index] = B[index] ^ ((~B[(x + 1) % 5 + 5 * y]) & B[(x + 2) % 5 + 5 * y]);
+        /* Iota - generate round constant via LFSR */
+        /* Initialize R for this round */
+        static uint8_t R_state = 0;
+        if (round == 0) {
+            R_state = 1;
+        }
+        
+        for (j = 0; j < 7; j++) {
+            R_state = ((R_state << 1) ^ ((R_state >> 7) * 0x71)) % 256;
+            if (R_state & 2) {
+                RC ^= (1ULL << ((1 << j) - 1));
             }
         }
-
-        /* Iota step */
-        state[0] ^= keccak_rc[round];
+        
+        state[0] ^= RC;
     }
 }
+
 
 /* ============================================================================
  * Public API Functions
@@ -176,15 +195,6 @@ void keccak_hash(uint8_t *output, const uint8_t *input, size_t input_len, size_t
     }
 
     /* Padding */
-    // If the input completely fills one or more blocks, we need to apply the permutation
-    // to those blocks first, then apply padding to a new block
-    if (input_len > 0 && input_len % rate == 0) {
-        // Apply permutation for the completely filled block
-        keccak_f1600(state);
-        // Now pad a new (zero-initialized) block
-        memset(state, 0, sizeof(state));
-    }
-
     // Convert state to bytes for padding
     for (j = 0; j < 25; j++) {
         store64_le(&state_bytes[j * 8], state[j]);
