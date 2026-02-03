@@ -34,6 +34,13 @@
 #   ios-arm64        - iOS ARM64
 #   android-arm64    - Android ARM64
 #   android-arm      - Android ARMv7
+#   android-x86_64   - Android x86_64 (emulator)
+#   android-x86      - Android x86 (emulator)
+
+# Android NDK path (auto-detected or set manually)
+NDK_PATH ?= $(wildcard $(HOME)/Android/Sdk/ndk/29.0.14206865)
+NDK_TOOLCHAIN = $(NDK_PATH)/toolchains/llvm/prebuilt/linux-x86_64/bin
+ANDROID_API ?= 35
 
 TARGET ?= native
 
@@ -89,15 +96,21 @@ else ifeq ($(TARGET),ios-arm64)
     CXX ?= $(CROSS_COMPILE)clang++
     AR ?= $(CROSS_COMPILE)ar
 else ifeq ($(TARGET),android-arm64)
-    CROSS_COMPILE = aarch64-linux-android35-
-    CC ?= $(CROSS_COMPILE)clang
-    CXX ?= $(CROSS_COMPILE)clang++
-    AR ?= $(CROSS_COMPILE)ar
+    CC = $(NDK_TOOLCHAIN)/aarch64-linux-android$(ANDROID_API)-clang
+    CXX = $(NDK_TOOLCHAIN)/aarch64-linux-android$(ANDROID_API)-clang++
+    AR = $(NDK_TOOLCHAIN)/llvm-ar
 else ifeq ($(TARGET),android-arm)
-    CROSS_COMPILE = armv7a-linux-androideabi35-
-    CC ?= $(CROSS_COMPILE)clang
-    CXX ?= $(CROSS_COMPILE)clang++
-    AR ?= $(CROSS_COMPILE)ar
+    CC = $(NDK_TOOLCHAIN)/armv7a-linux-androideabi$(ANDROID_API)-clang
+    CXX = $(NDK_TOOLCHAIN)/armv7a-linux-androideabi$(ANDROID_API)-clang++
+    AR = $(NDK_TOOLCHAIN)/llvm-ar
+else ifeq ($(TARGET),android-x86_64)
+    CC = $(NDK_TOOLCHAIN)/x86_64-linux-android$(ANDROID_API)-clang
+    CXX = $(NDK_TOOLCHAIN)/x86_64-linux-android$(ANDROID_API)-clang++
+    AR = $(NDK_TOOLCHAIN)/llvm-ar
+else ifeq ($(TARGET),android-x86)
+    CC = $(NDK_TOOLCHAIN)/i686-linux-android$(ANDROID_API)-clang
+    CXX = $(NDK_TOOLCHAIN)/i686-linux-android$(ANDROID_API)-clang++
+    AR = $(NDK_TOOLCHAIN)/llvm-ar
 else
     # Default fallback for undefined targets
     CROSS_COMPILE =
@@ -471,7 +484,10 @@ help:
 	@echo "  ios-arm64          - Build for iOS ARM64"
 	@echo "  android-arm64      - Build for Android ARM64"
 	@echo "  android-arm        - Build for Android ARMv7"
+	@echo "  android-x86_64     - Build for Android x86_64 (emulator)"
+	@echo "  android-x86        - Build for Android x86 (emulator)"
 	@echo "  android-all        - Build all Android targets"
+	@echo "  android-test       - Build static test binary for Android emulator"
 	@echo "  all-platforms      - Build for all supported platforms"
 	@echo ""
 	@echo "Environment variables:"
@@ -578,8 +594,33 @@ android-arm:
 	@$(MAKE) info TARGET=android-arm
 	@$(MAKE) lib TARGET=android-arm
 
-android-all: android-arm64 android-arm
+android-x86_64:
+	@echo "[CROSS] Building for Android x86_64..."
+	@$(MAKE) clean
+	@$(MAKE) info TARGET=android-x86_64
+	@$(MAKE) lib TARGET=android-x86_64
+
+android-x86:
+	@echo "[CROSS] Building for Android x86..."
+	@$(MAKE) clean
+	@$(MAKE) info TARGET=android-x86
+	@$(MAKE) lib TARGET=android-x86
+
+android-all: android-arm64 android-arm android-x86_64 android-x86
 	@echo "[✓] Android builds complete"
+
+# Build test executable for Android (static, for emulator/device testing)
+android-test:
+	@echo "[CROSS] Building static test for Android x86_64 (emulator)..."
+	@$(MAKE) clean
+	@$(MAKE) lib TARGET=android-x86_64
+	@$(MAKE) $(BUILD_DIR)/test.o TARGET=android-x86_64
+	@echo "[LD] Linking static test executable..."
+	@$(NDK_TOOLCHAIN)/x86_64-linux-android$(ANDROID_API)-clang \
+		-Wall -Wextra -std=c99 -Isrc -O2 -static \
+		-o $(BUILD_DIR)/test_keccak_android \
+		$(BUILD_DIR)/test.o $(STATIC_LIB)
+	@echo "[✓] Android test binary: $(BUILD_DIR)/test_keccak_android"
 
 # Build all targets
 all-platforms: windows-all linux-all macos-all ios android-all
@@ -597,6 +638,39 @@ analyze:
 		echo "[ANALYSIS] Running cppcheck..." && \
 		cppcheck --enable=all --std=c99 $(SRC_DIR)/ $(TEST_DIR)/ || \
 		echo "cppcheck not installed, skipping static analysis"
+
+# ============================================================================
+# Webapp CLI Tools
+# ============================================================================
+
+WEBAPP_TOOLS = webapp/tools
+
+$(BUILD_DIR)/hash_cli: $(WEBAPP_TOOLS)/hash_cli.c $(STATIC_LIB) | $(BUILD_DIR)
+	@echo "[CC] $< -> $@"
+	@$(CC) $(CFLAGS) -o $@ $< $(STATIC_LIB)
+
+$(BUILD_DIR)/hash_cli_cpp: $(WEBAPP_TOOLS)/hash_cli_cpp.cpp $(STATIC_LIB) | $(BUILD_DIR)
+	@echo "[CXX] $< -> $@"
+	@$(CXX) -Wall -Wextra -std=c++17 -Isrc -O2 -o $@ $< $(STATIC_LIB)
+
+$(BUILD_DIR)/hash_cli_linux_arm64: $(WEBAPP_TOOLS)/hash_cli.c $(SRC_DIR)/Keccak.c $(SRC_DIR)/sha3.c | $(BUILD_DIR)
+	@echo "[CROSS] $< -> $@ (linux-arm64)"
+	@aarch64-linux-gnu-gcc -Wall -Wextra -std=c99 -Isrc -O2 -static \
+		-o $@ $< src/Keccak.c src/sha3.c
+
+$(BUILD_DIR)/hash_cli_android_arm64: $(WEBAPP_TOOLS)/hash_cli.c $(SRC_DIR)/Keccak.c $(SRC_DIR)/sha3.c | $(BUILD_DIR)
+	@echo "[CROSS] $< -> $@ (android-arm64)"
+	@$(NDK_TOOLCHAIN)/aarch64-linux-android$(ANDROID_API)-clang \
+		-Wall -Wextra -std=c99 -Isrc -O2 -static \
+		-o $@ $< src/Keccak.c src/sha3.c
+
+.PHONY: webapp-tools webapp-tools-cross webapp
+
+webapp-tools: $(BUILD_DIR)/hash_cli $(BUILD_DIR)/hash_cli_cpp
+
+webapp-tools-cross: $(BUILD_DIR)/hash_cli_linux_arm64 $(BUILD_DIR)/hash_cli_android_arm64
+
+webapp: webapp-tools webapp-tools-cross
 
 # ============================================================================
 # End of Makefile

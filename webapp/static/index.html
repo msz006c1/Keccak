@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keccak/SHA3 Hash Tester</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Keccak/SHA3 Hash Tester</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="algorithm">Algorithm</label>
+                <select id="algorithm">
+                    <option value="sha3-256">SHA3-256</option>
+                    <option value="sha3-512">SHA3-512</option>
+                    <option value="sha3-1024">SHA3-1024</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="implementation">Implementation</label>
+                <select id="implementation">
+                    <option value="c">C</option>
+                    <option value="cpp">C++</option>
+                    <option value="erlang-nif">Erlang NIF</option>
+                    <option value="erlang-pure">Pure Erlang</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="platform">Platform</label>
+                <select id="platform">
+                    <option value="native">Native x86_64</option>
+                    <option value="linux-arm64">Linux ARM64 (QEMU)</option>
+                    <option value="android-arm64">Android ARM64 (QEMU)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label for="input-text">Input</label>
+            <textarea id="input-text" rows="4" placeholder="Enter text to hash..."></textarea>
+        </div>
+
+        <button id="compute-btn">Compute Hash</button>
+
+        <div id="loading" class="loading hidden">Computing...</div>
+
+        <div id="error" class="error hidden"></div>
+
+        <div id="output" class="output hidden">
+            <div class="output-row">
+                <span class="output-label">Selection:</span>
+                <span id="out-selection" class="output-value"></span>
+            </div>
+            <div class="output-row">
+                <span class="output-label">Input:</span>
+                <span id="out-input" class="output-value"></span>
+            </div>
+            <div class="output-row">
+                <span class="output-label">Hash:</span>
+                <span id="out-hash" class="output-value hash-value"></span>
+            </div>
+            <div class="output-row">
+                <span class="output-label">Exec Time:</span>
+                <span id="out-time" class="output-value"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,41 +1,58 @@
-# Keccak Hash Algorithm
+# Keccak/SHA3 Implementation
 
 ## Overview
-Keccak is a cryptographic hash function that is the basis for the SHA-3 standard. It is designed to be secure, efficient, and flexible, making it suitable for a wide range of applications.
-
-## Features
-- Implements the Keccak hash algorithm.
-- Supports SHA3-256 and SHA3-512 hash functions.
-- Provides a simple interface for hashing data.
+A FIPS 202 compliant implementation of the Keccak hash function family in C, C++, and Erlang.
+Supports SHA3-256, SHA3-512, and SHA3-1024 (extended Keccak variant).
 
 ## Files
-- `src/Keccak.c`: Contains the core implementation of the Keccak hash algorithm, including the permutation function and hash computation.
-- `src/Keccak.h`: Header file that declares function prototypes and constants for use in other source files.
-- `tests/test.c`: Unit tests for the Keccak algorithm, verifying the correctness of the implementation.
-- `Makefile`: Build script that defines compilation rules and targets for the project.
-- `LICENSE`: Contains the license information for the project.
+- `src/Keccak.c` / `src/Keccak.h` — Core Keccak-f[1600] permutation and sponge construction
+- `src/sha3.c` / `src/sha3.h` — SHA3 wrapper functions (single-call and streaming API)
+- `src/keccak.hpp` — C++ wrapper with RAII classes
+- `src/keccak.erl` — Erlang NIF interface
+- `c_src/keccak_nif.c` — Erlang NIF C implementation
+- `Keccak_erl/keccak_real_fixed.erl` — Pure Erlang implementation
+- `tests/test.c` — Unit tests verifying NIST test vectors
+- `Makefile` — Build script
 
-## Usage
-To use the Keccak hash functions, include the `Keccak.h` header in your source files and link against the compiled `Keccak.c` implementation.
+## Building
 
-### Example
+### C library and tests
+```bash
+make
+```
+
+### Erlang NIF
+```bash
+bash build_nif.sh
+```
+
+### Pure Erlang
+```bash
+cd Keccak_erl && mkdir -p ebin && erlc -o ebin *.erl
+```
+
+## Documentation
+
+Comprehensive documentation for this library is available. See [DOCS.md](DOCS.md) for instructions on generating and viewing the documentation.
+
+To generate documentation locally:
+
+```bash
+./generate_docs.sh
+```
+
+The documentation includes detailed API references for C, C++, and Erlang interfaces.
+
+## Example
 ```c
-#include "Keccak.h"
+#include "sha3.h"
 
 int main() {
-    uint8_t output[32]; // For SHA3-256
-    const uint8_t input[] = "Hello, World!";
-    sha3_256(output, input, sizeof(input) - 1);
-    // Output the hash...
+    uint8_t hash[32];
+    sha3_256(hash, (const uint8_t*)"Hello, World!", 13);
     return 0;
 }
 ```
 
-## Building the Project
-To build the project, run the following command in the project directory:
-```
-make
-```
-
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+MIT License. See the LICENSE file for details.
